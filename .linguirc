@@ -1,0 +1,25 @@
+{
+    "locales": [
+        "ar",
+        "en",
+        "es",
+        "fr"
+    ],
+    "sourceLocale": "en",
+    "fallbackLocales": {
+        "default": "en"
+    },
+    "catalogs": [
+        {
+            "path": "src/locales/{locale}/messages",
+            "include": [
+                "src"
+            ],
+            "exclude": [
+                "/node_modules/.*./node_modules/",
+                "/src/locales/"
+            ]
+        }
+    ],
+    "format": "minimal"
+}
