@@ -23,12 +23,6 @@ export default function I18nLoader({ children, languageKey }) {
     const [defaultMessages, setDefaultMessages] = useState({})
 
     useEffect(() => {
-        if (languageKey !== undefined) {
-            dynamicActivate(languageKey)
-        }
-    }, [languageKey])
-
-    useEffect(() => {
         const allMessages = {}
         Array.from(['ar', 'en', 'es', 'fr']).forEach(async (key) => {
             if (!allMessages[key]) {
@@ -47,6 +41,12 @@ export default function I18nLoader({ children, languageKey }) {
             }
         })
     }, [])
+
+    useEffect(() => {
+        if (languageKey !== undefined) {
+            dynamicActivate(languageKey)
+        }
+    }, [languageKey])
 
     const postMessages = (allMessages) => {
         fetch('http://localhost:3000/posts', {
@@ -71,9 +71,7 @@ export default function I18nLoader({ children, languageKey }) {
         try {
             const allMessages = await fetch('http://localhost:3000/posts').then((res) => res.json())
             const messages = allMessages[languageKey]
-            if (messages !== undefined) {
-                handleLoad(locale, messages)
-            }
+            handleLoad(locale, messages, allMessages[locale])
         } catch (error) {
             console.error('Error:', error)
         } finally {
@@ -81,8 +79,11 @@ export default function I18nLoader({ children, languageKey }) {
         }
     }
 
-    const handleLoad = (locale, messages) => {
-        const catalog = remoteLoader({ messages, fallbackMessages: defaultMessages })
+    const handleLoad = (locale, messages = defaultMessages, fallbackMessages = defaultMessages) => {
+        const catalog = remoteLoader({
+            messages,
+            fallbackMessages: fallbackMessages,
+        })
         i18n.loadLocaleData(locale, { plurals: Plurals[locale] })
         i18n.load(locale, catalog)
         i18n.activate(locale)

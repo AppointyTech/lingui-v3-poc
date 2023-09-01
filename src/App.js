@@ -27,6 +27,8 @@ function App() {
                         <option value="fr-someId">Custom French language</option>
                         <option value="ar">Default Arabic language</option>
                         <option value="ar-someId">Custom Arabic language</option>
+                        {/* <option value="az">Default Az language</option>
+                        <option value="az-someId">Custom Az language</option> */}
                     </select>
                 </div>
                 <Main />

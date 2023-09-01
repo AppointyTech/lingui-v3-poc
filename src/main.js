@@ -19,9 +19,8 @@ export default function Main() {
                 setFormData(messages)
             })
             .catch((error) => {
-                const messages = { ...defaultMessages }
-                setMessages(messages)
-                setFormData(messages)
+                setMessages(defaultMessages)
+                setFormData(defaultMessages)
                 console.error('Error:', error)
             })
     }, [languageKey])
@@ -56,7 +55,7 @@ export default function Main() {
                         const locale = languageKey.includes('-')
                             ? languageKey.split('-')[0]
                             : languageKey
-                        handleLoad?.(locale, { ...data[languageKey] })
+                        handleLoad(locale, data[languageKey], data[locale])
                     })
                     .catch((error) => {
                         console.error('Error:', error)
