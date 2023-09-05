@@ -1,14 +1,17 @@
 import { useEffect, useState, createContext, useContext } from 'react'
+
+import * as Plurals from 'make-plural/plurals'
 import { I18nProvider } from '@lingui/react'
 import { i18n } from '@lingui/core'
-import * as Plurals from 'make-plural/plurals'
-import { isEmpty, omit, omitBy, transform } from 'lodash'
 import { remoteLoader } from '@lingui/remote-loader'
+import { isEmpty, omit, omitBy, transform } from 'lodash'
+import { languages } from '../utils/utils'
 
 export const I18nContext = createContext({
     handleLoad: undefined,
     languageKey: 'en',
     defaultMessages: {},
+    defaultLanguage: 'en',
 })
 
 export function useI18n() {
@@ -19,16 +22,13 @@ export function useI18n() {
 // i18n.load('en', {})
 // i18n.activate('en')
 
-export default function I18nLoader({ children, languageKey: _languageKey }) {
-    const [languageKey, setLanguageKey] = useState(_languageKey)
+export default function I18nLoader({ children, languageKey, defaultLanguage }) {
     const [loading, setLoading] = useState(false)
     const [defaultMessages, setDefaultMessages] = useState({})
 
-    const changeLanguage = (e) => setLanguageKey(e.target.value)
-
     useEffect(() => {
         const allMessages = {}
-        Array.from(['ar', 'en', 'es', 'fr']).forEach(async (key) => {
+        languages.forEach(async (key) => {
             if (!allMessages[key]) {
                 try {
                     const messages = await import(`../locales/${key}/messages.json`)
@@ -38,14 +38,14 @@ export default function I18nLoader({ children, languageKey: _languageKey }) {
                             'default'
                         ),
                     }
-                    if (isEmpty(defaultMessages) && !isEmpty(allMessages['en'])) {
-                        setDefaultMessages(allMessages['en'])
+                    if (isEmpty(defaultMessages) && !isEmpty(allMessages[defaultLanguage])) {
+                        setDefaultMessages(allMessages[defaultLanguage])
                         allMessages['template'] = transform(
-                            allMessages['en'],
+                            allMessages[defaultLanguage],
                             (result, value, key) => (result[key] = '')
                         )
                     }
-                    if (Object.keys(allMessages).length === 4) {
+                    if (Object.keys(allMessages).length === languages.length + 1) {
                         postMessages(allMessages)
                     }
                 } catch (error) {
@@ -53,6 +53,7 @@ export default function I18nLoader({ children, languageKey: _languageKey }) {
                 }
             }
         })
+        console.log({ allMessages })
     }, [])
 
     useEffect(() => {
@@ -103,21 +104,10 @@ export default function I18nLoader({ children, languageKey: _languageKey }) {
     }
 
     if (loading) {
-        return (
-            <div
-                style={{
-                    minHeight: '100vh',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                }}
-            >
-                loading...
-            </div>
-        )
+        return <div className="min-h-screen flex justify-center items-center">loading...</div>
     }
     return (
-        <I18nContext.Provider value={{ languageKey, handleLoad, defaultMessages, changeLanguage }}>
+        <I18nContext.Provider value={{ languageKey, handleLoad, defaultMessages }}>
             <I18nProvider i18n={i18n}>{children}</I18nProvider>
         </I18nContext.Provider>
     )
