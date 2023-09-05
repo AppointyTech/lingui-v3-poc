@@ -1,20 +1,23 @@
-import React, { useEffect, useState } from 'react'
-import { useI18n } from './I18nLoader'
-import { Trans, Plural, t } from '@lingui/macro'
-import { useLingui } from '@lingui/react'
+import React, { useState, useEffect } from 'react'
 
-export default function Main() {
+import { remoteLoader } from '@lingui/remote-loader'
+import { useLingui } from '@lingui/react'
+import { t } from '@lingui/macro'
+
+import { useI18n } from '../context/I18nLoader'
+
+export function ReplaceLocales() {
     const [messages, setMessages] = useState()
     const [formData, setFormData] = useState()
-    const [count, setCount] = useState(1)
-    const { languageKey, handleLoad, defaultMessages } = useI18n()
+    const { handleLoad, defaultMessages, languageKey, changeLanguage } = useI18n()
     const { i18n } = useLingui()
 
     useEffect(() => {
         fetch('http://localhost:3000/posts')
             .then((res) => res.json())
             .then((data) => {
-                const messages = data[languageKey]
+                const defaultTemplate = data['template']
+                const messages = { ...defaultTemplate, ...data[languageKey] }
                 setMessages(messages)
                 setFormData(messages)
             })
@@ -42,6 +45,7 @@ export default function Main() {
                         ...formData,
                     },
                 }
+                remoteLoader({ messages: formData })
                 fetch('http://localhost:3000/posts', {
                     method: 'POST',
                     headers: {
@@ -66,57 +70,30 @@ export default function Main() {
             })
     }
 
-    const handleIncrement = () => setCount((prevCount) => prevCount + 1)
-    const handleDecrement = () => setCount((prevCount) => prevCount - 1)
-
     return (
         <>
-            <div>
-                <Trans>
-                    What is Lorem Ipsum? Lorem Ipsum is simply dummy text of the printing and
-                    typesetting industry.
-                </Trans>
+            <div className="mb-4">
+                <select value={languageKey} onChange={changeLanguage}>
+                    <option value="en">Default English language</option>
+                    <option value="en-someId">Custom English language</option>
+                    <option value="es">Default Spanish language</option>
+                    <option value="es-someId">Custom Spanish language</option>
+                    <option value="fr">Default French language</option>
+                    <option value="fr-someId">Custom French language</option>
+                    <option value="ar">Default Arabic language</option>
+                    <option value="ar-someId">Custom Arabic language</option>
+                </select>
             </div>
-            <div>
-                <Trans>
-                    Lorem Ipsum has been the industry's standard dummy text ever since the 1500s,
-                    when an unknown printer took a galley of type and scrambled it to make a type
-                    specimen book.
-                </Trans>
-            </div>
-            <div>
-                <Trans>
-                    It has survived not only five centuries, but also the leap into electronic
-                    typesetting, remaining essentially unchanged.
-                </Trans>
-            </div>
-            <div>
-                <Trans>
-                    It was popularised in the 1960s with the release of Letraset sheets containing
-                    Lorem Ipsum passages, and more recently with desktop publishing software like
-                    Aldus PageMaker including versions of Lorem Ipsum.
-                </Trans>
-            </div>
-            <div></div>
-            <div style={{ display: 'flex', gap: '2rem' }}>
-                <Plural
-                    value={count}
-                    zero="There're no messages"
-                    one="There's # message in your inbox"
-                    other="There're # messages in your inbox"
-                />
-                <div>
-                    <button onClick={handleDecrement}>-</button> <Trans>Count- {count}</Trans>{' '}
-                    <button onClick={handleIncrement}>+</button>
-                </div>
-            </div>
-            <button onClick={handleAdd}>
+            <button
+                className="border border-slate-400 rounded-lg px-2 py-1 mx-auto"
+                onClick={handleAdd}
+            >
                 {languageKey.includes('-')
                     ? i18n._(t`Change translation`)
                     : i18n._(t`Add custom translation`)}
             </button>
-            <div>
-                <h2>Edit Value</h2>
+            <div className="my-2">
+                <h2 className="flex justify-center font-bold">Edit Value</h2>
                 <ul
                     style={{
                         listStyle: 'none',
@@ -131,12 +108,14 @@ export default function Main() {
                             <li
                                 key={key}
                                 style={{ display: 'flex', justifyContent: 'space-between' }}
+                                className="border border-gray-500 p-2 flex items-center"
                             >
                                 <span>{key}</span>
                                 <input
                                     type="text"
                                     value={formData?.[key]}
                                     onChange={handleInputChange(key)}
+                                    className="border border-blue-700 p-1"
                                 />
                             </li>
                         ))}
