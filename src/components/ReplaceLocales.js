@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
 
 import { remoteLoader } from '@lingui/remote-loader'
-import { useLingui } from '@lingui/react'
 import { t } from '@lingui/macro'
 
 import { useI18n } from '../context/I18nLoader'
@@ -10,9 +9,7 @@ export function ReplaceLocales() {
     const [loading, setLoading] = useState(false)
     const [messages, setMessages] = useState()
     const [formData, setFormData] = useState()
-    const [isDeveloper, setIsDeveloper] = useState(false)
-    const { handleLoad, defaultMessages, languageKey } = useI18n()
-    const { i18n } = useLingui()
+    const { i18n, handleLoad, defaultMessages, languageKey } = useI18n()
 
     useEffect(() => {
         setLoading(true)
@@ -62,7 +59,9 @@ export function ReplaceLocales() {
                         const locale = languageKey.includes('-')
                             ? languageKey.split('-')[0]
                             : languageKey
-                        handleLoad(locale, data[languageKey], data[locale])
+                        if (languageKey.includes('-')) {
+                            handleLoad(locale, data[languageKey], data[locale])
+                        }
                     })
                     .catch((error) => {
                         console.error('Error:', error)
@@ -79,23 +78,11 @@ export function ReplaceLocales() {
 
     return (
         <>
-            <div className="flex justify-center items-center gap-4">
-                <label htmlFor="is-developer-checkbox">Are you a developer</label>
-                <input
-                    className="hover:cursor-pointer"
-                    id="is-developer-checkbox"
-                    type="checkbox"
-                    value={isDeveloper}
-                    onChange={() => setIsDeveloper((prev) => !prev)}
-                />
-            </div>
             <button
                 className="border border-slate-400 rounded-lg px-2 py-1 mx-auto"
                 onClick={handleAdd}
             >
                 {languageKey.includes('-')
-                    ? i18n._(t`Change custom translation`)
-                    : isDeveloper
                     ? i18n._(t`Change default translation`)
                     : i18n._(t`Add custom translation`)}
             </button>

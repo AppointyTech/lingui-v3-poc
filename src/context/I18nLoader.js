@@ -2,12 +2,13 @@ import { useEffect, useState, createContext, useContext } from 'react'
 
 import * as Plurals from 'make-plural/plurals'
 import { I18nProvider } from '@lingui/react'
-import { i18n } from '@lingui/core'
+import { i18n, setupI18n } from '@lingui/core'
 import { remoteLoader } from '@lingui/remote-loader'
 import { isEmpty, omit, omitBy, transform } from 'lodash'
 import { languages } from '../utils/utils'
 
 export const I18nContext = createContext({
+    i18n: setupI18n(),
     handleLoad: undefined,
     languageKey: 'en',
     defaultMessages: {},
@@ -53,7 +54,6 @@ export default function I18nLoader({ children, languageKey, defaultLanguage }) {
                 }
             }
         })
-        console.log({ allMessages })
     }, [])
 
     useEffect(() => {
@@ -83,7 +83,9 @@ export default function I18nLoader({ children, languageKey, defaultLanguage }) {
         const locale = languageKey.includes('-') ? languageKey.split('-')[0] : languageKey
         setLoading(true)
         try {
+            console.time('Fetch-data')
             const allMessages = await fetch('http://localhost:3000/posts').then((res) => res.json())
+            console.timeEnd('Fetch-data')
             const messages = allMessages[languageKey]
             handleLoad(locale, messages, allMessages[locale])
         } catch (error) {
@@ -94,20 +96,24 @@ export default function I18nLoader({ children, languageKey, defaultLanguage }) {
     }
 
     const handleLoad = (locale, messages = defaultMessages, fallbackMessages = defaultMessages) => {
+        console.time('Remote-loader-compile-time')
         const catalog = remoteLoader({
             messages,
             fallbackMessages: fallbackMessages,
         })
+        console.timeEnd('Remote-loader-compile-time')
+        console.time('Lingui-load')
         i18n.loadLocaleData(locale, { plurals: Plurals[locale] })
         i18n.load(locale, catalog)
         i18n.activate(locale)
+        console.timeEnd('Lingui-load')
     }
 
     if (loading) {
         return <div className="min-h-screen flex justify-center items-center">loading...</div>
     }
     return (
-        <I18nContext.Provider value={{ languageKey, handleLoad, defaultMessages }}>
+        <I18nContext.Provider value={{ i18n, languageKey, handleLoad, defaultMessages }}>
             <I18nProvider i18n={i18n}>{children}</I18nProvider>
         </I18nContext.Provider>
     )

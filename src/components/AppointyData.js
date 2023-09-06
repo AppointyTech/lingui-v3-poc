@@ -1,11 +1,10 @@
 import React from 'react'
 
-import { useLingui } from '@lingui/react'
-
 import { sampleData } from '../data/sampleData'
+import { useI18n } from '../context/I18nLoader'
 
 export default function AppointyData() {
-    const { i18n } = useLingui()
+    const { i18n } = useI18n()
 
     const data = [...sampleData]
     return (

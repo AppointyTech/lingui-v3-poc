@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
 
 import loadable from '@loadable/component'
+import { Trans } from '@lingui/macro'
 
 import I18nLoader from './context/I18nLoader'
 import { ReplaceLocales } from './components/ReplaceLocales'
@@ -22,22 +23,34 @@ function App() {
                     <nav className="max-w-[1440px] mx-auto px-4">
                         <ul className="flex gap-8 py-4">
                             <li className="hover:underline uppercase">
-                                <Link to="/">Home</Link>
+                                <Link to="/">
+                                    <Trans>Home</Trans>
+                                </Link>
                             </li>
                             <li className="hover:underline uppercase">
-                                <Link to="page-1">Page 1</Link>
+                                <Link to="page-1">
+                                    <Trans>Page 1</Trans>
+                                </Link>
                             </li>
                             <li className="hover:underline uppercase">
-                                <Link to="page-2">Page 2</Link>
+                                <Link to="page-2">
+                                    <Trans>Page 2</Trans>
+                                </Link>
                             </li>
                             <li className="hover:underline uppercase">
-                                <Link to="page-3">Page 3</Link>
+                                <Link to="page-3">
+                                    <Trans>Page 3</Trans>
+                                </Link>
                             </li>
                             <li className="hover:underline uppercase">
-                                <Link to="appointy-data">Appointy Data</Link>
+                                <Link to="appointy-data">
+                                    <Trans>Appointy Data</Trans>
+                                </Link>
                             </li>
                             <li className="ml-auto hover:underline uppercase">
-                                <Link to="replace-locales">Replace Locales</Link>
+                                <Link to="replace-locales">
+                                    <Trans>Replace Locales</Trans>
+                                </Link>
                             </li>
                             <li className="hover:underline uppercase">
                                 <select value={languageKey} onChange={changeLanguage}>

@@ -1,11 +1,12 @@
 import React, { useState } from 'react'
 
 import { Trans, Plural, t } from '@lingui/macro'
-import { useLingui } from '@lingui/react'
+
+import { useI18n } from '../context/I18nLoader'
 
 export default function Home() {
     const [count, setCount] = useState(1)
-    const { i18n } = useLingui()
+    const { i18n } = useI18n()
 
     const handleIncrement = () => setCount((prevCount) => prevCount + 1)
     const handleDecrement = () => setCount((prevCount) => prevCount - 1)
@@ -37,9 +38,9 @@ export default function Home() {
                 </Trans>
             </div>
             <div>
-                {i18n._(t`It was popularised in the 1960s with the release of Letraset sheets containing
-                    Lorem Ipsum passages, and more recently with desktop publishing software like
-                    Aldus PageMaker including versions of Lorem Ipsum.`)}
+                {i18n._(
+                    t`It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.`
+                )}
             </div>
             <div className="flex items-center gap-8">
                 <Plural
