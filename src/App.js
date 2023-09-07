@@ -13,7 +13,7 @@ const Page3 = loadable(() => import('./components/Page-3'))
 const AppointyData = loadable(() => import('./components/AppointyData'))
 
 function App() {
-    const [languageKey, setLanguageKey] = useState('es-someId')
+    const [languageKey, setLanguageKey] = useState('en')
     const changeLanguage = (e) => setLanguageKey(e.target.value)
 
     return (

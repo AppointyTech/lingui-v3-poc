@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 
 import { remoteLoader } from '@lingui/remote-loader'
 import { t, Trans } from '@lingui/macro'
 import { useLingui } from '@lingui/react'
-import { omitBy, omit } from 'lodash'
+import { omitBy, omit, pickBy } from 'lodash'
 
 import { useI18n } from '../context/I18nLoader'
 
@@ -11,6 +11,7 @@ export function ReplaceLocales() {
     const [loading, setLoading] = useState(false)
     const [messages, setMessages] = useState()
     const [formData, setFormData] = useState()
+    const selectedLanguageDefaultMessagesRef = useRef({})
     const { handleLoad, languageKey } = useI18n()
     const { i18n } = useLingui()
     const isDefaultLanguage = !languageKey.includes('-')
@@ -21,7 +22,7 @@ export function ReplaceLocales() {
             setLoading(true)
             ;(async () => {
                 try {
-                    const selectedLanguageDefaultJsonMessages = omit(
+                    selectedLanguageDefaultMessagesRef.current = omit(
                         {
                             ...(await import(`../locales/${locale}/messages.json`)),
                         },
@@ -31,8 +32,8 @@ export function ReplaceLocales() {
                         res.json()
                     )
                     const messages = {
-                        ...selectedLanguageDefaultJsonMessages,
-                        ...data[languageKey],
+                        ...selectedLanguageDefaultMessagesRef.current,
+                        ...data[languageKey]?.messages,
                     }
                     setMessages(messages)
                     setFormData(messages)
@@ -57,13 +58,22 @@ export function ReplaceLocales() {
             fetch('http://localhost:3000/posts')
                 .then((res) => res.json())
                 .then((data) => {
+                    const messages = pickBy(
+                        omitBy(formData, (value) => !value),
+                        (value, key) => selectedLanguageDefaultMessagesRef.current[key] !== value
+                    )
+
+                    console.time('Remote-loader-compile-time')
+                    const compliedMessages = remoteLoader({ messages })
+                    console.timeEnd('Remote-loader-compile-time')
+
                     const modifiedData = {
                         ...data,
                         [languageKey]: {
-                            ...omitBy(formData, (value) => !value),
+                            messages,
+                            compliedMessages,
                         },
                     }
-                    remoteLoader({ messages: formData })
                     fetch('http://localhost:3000/posts', {
                         method: 'POST',
                         headers: {
@@ -75,7 +85,8 @@ export function ReplaceLocales() {
                         .then((data) => {
                             console.log('POST Request Response:', data)
                             const locale = languageKey.split('-')[0]
-                            handleLoad(isDefaultLanguage, locale, data[languageKey])
+                            const compliedMessages = data[languageKey].compliedMessages
+                            handleLoad(isDefaultLanguage, locale, compliedMessages)
                         })
                         .catch((error) => {
                             console.error('Error:', error)

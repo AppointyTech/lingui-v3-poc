@@ -34,20 +34,17 @@ export default function I18nLoader({ children, languageKey }) {
         const locale = languageKey.includes('-') ? languageKey.split('-')[0] : languageKey
         setLoading(true)
         try {
-            const languageDefaultCompliedMessage = {
+            selectedLanguageDefaultCompliedMessageRef.current = {
                 ...(await import(`../locales/${locale}/messages.js`)).messages,
             }
-            selectedLanguageDefaultCompliedMessageRef.current = languageDefaultCompliedMessage
             if (isDefaultLanguage) {
-                handleLoad(isDefaultLanguage, languageKey, languageDefaultCompliedMessage)
+                handleLoad(isDefaultLanguage, languageKey)
             } else {
-                // console.time('Fetch-data')
                 const allMessages = await fetch('http://localhost:3000/posts').then((res) =>
                     res.json()
                 )
-                // console.timeEnd('Fetch-data')
-                const messages = allMessages[languageKey]
-                handleLoad(isDefaultLanguage, locale, messages)
+                const compliedMessages = allMessages[languageKey]?.compliedMessages
+                handleLoad(isDefaultLanguage, locale, compliedMessages)
             }
         } catch (error) {
             console.error('Error:', error)
@@ -56,24 +53,15 @@ export default function I18nLoader({ children, languageKey }) {
         }
     }
 
-    const handleLoad = (isComplied, locale, messages) => {
+    const handleLoad = (hasCompliedMessages, locale, compliedMessages) => {
         let catalog = {}
-        if (isComplied) {
-            catalog = messages
-        } else {
-            console.time('Remote-loader-compile-time')
-            if (messages) {
-                const compliedMessages = remoteLoader({
-                    messages,
-                })
-                catalog = {
-                    ...selectedLanguageDefaultCompliedMessageRef.current,
-                    ...compliedMessages,
-                }
-            } else {
-                catalog = selectedLanguageDefaultCompliedMessageRef.current
+        if (hasCompliedMessages === false && compliedMessages !== undefined) {
+            catalog = {
+                ...selectedLanguageDefaultCompliedMessageRef.current,
+                ...compliedMessages,
             }
-            console.timeEnd('Remote-loader-compile-time')
+        } else {
+            catalog = selectedLanguageDefaultCompliedMessageRef.current
         }
         console.log({ catalog })
         console.time('Lingui-load')
