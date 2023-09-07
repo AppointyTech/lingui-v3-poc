@@ -13,11 +13,11 @@ const Page3 = loadable(() => import('./components/Page-3'))
 const AppointyData = loadable(() => import('./components/AppointyData'))
 
 function App() {
-    const [languageKey, setLanguageKey] = useState('en')
+    const [languageKey, setLanguageKey] = useState('es-someId')
     const changeLanguage = (e) => setLanguageKey(e.target.value)
 
     return (
-        <I18nLoader languageKey={languageKey} defaultLanguage={'en'}>
+        <I18nLoader languageKey={languageKey}>
             <BrowserRouter>
                 <header className="bg-slate-100">
                     <nav className="max-w-[1440px] mx-auto px-4">

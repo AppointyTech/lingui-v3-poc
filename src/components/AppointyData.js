@@ -9,9 +9,9 @@ export default function AppointyData() {
     const data = [...sampleData]
     return (
         <>
-            {data.map((value, index) => (
+            {/* {data.map((value, index) => (
                 <div key={`${value}-${index}`}>{i18n._(value)}</div>
-            ))}
+            ))} */}
         </>
     )
 }
