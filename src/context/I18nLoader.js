@@ -1,16 +1,14 @@
-import { useEffect, useState, createContext, useContext } from 'react'
+import { useEffect, useState, createContext, useContext, useRef } from 'react'
 
 import * as Plurals from 'make-plural/plurals'
 import { I18nProvider } from '@lingui/react'
 import { i18n, setupI18n } from '@lingui/core'
 import { remoteLoader } from '@lingui/remote-loader'
-import { omit } from 'lodash'
 
 export const I18nContext = createContext({
     i18n: setupI18n(),
     handleLoad: undefined,
     languageKey: 'en',
-    selectedLanguageDefaultJsonMessages: {},
 })
 
 export function useI18n() {
@@ -23,29 +21,7 @@ export function useI18n() {
 
 export default function I18nLoader({ children, languageKey }) {
     const [loading, setLoading] = useState(false)
-    const [messages, setMessages] = useState({
-        selectedLanguageDefaultJsonMessages: {},
-        fallbackJsonMessages: {},
-    })
-
-    useEffect(() => {
-        ;(async () => {
-            try {
-                const fallbackJsonMessages = omit(
-                    {
-                        ...(await import(`../locales/en/messages.json`)),
-                    },
-                    'default'
-                )
-                setMessages((prevState) => ({
-                    ...prevState,
-                    fallbackJsonMessages,
-                }))
-            } catch (error) {
-                console.error('Error:', error)
-            }
-        })()
-    }, [])
+    const selectedLanguageDefaultCompliedMessageRef = useRef({})
 
     useEffect(() => {
         if (languageKey !== undefined) {
@@ -58,33 +34,18 @@ export default function I18nLoader({ children, languageKey }) {
         const locale = languageKey.includes('-') ? languageKey.split('-')[0] : languageKey
         setLoading(true)
         try {
-            const selectedLanguageDefaultCompliedMessage = {
+            const languageDefaultCompliedMessage = {
                 ...(await import(`../locales/${locale}/messages.js`)).messages,
             }
-            const selectedLanguageDefaultJsonMessages = omit(
-                {
-                    ...(await import(`../locales/${locale}/messages.json`)),
-                },
-                'default'
-            )
-            console.log({
-                selectedLanguageDefaultCompliedMessage,
-                selectedLanguageDefaultJsonMessages,
-            })
-            setMessages((prevState) => ({
-                ...prevState,
-                selectedLanguageDefaultJsonMessages,
-            }))
+            selectedLanguageDefaultCompliedMessageRef.current = languageDefaultCompliedMessage
             if (isDefaultLanguage) {
-                handleLoad(isDefaultLanguage, languageKey, selectedLanguageDefaultCompliedMessage)
-                setLoading(false)
+                handleLoad(isDefaultLanguage, languageKey, languageDefaultCompliedMessage)
             } else {
                 // console.time('Fetch-data')
                 const allMessages = await fetch('http://localhost:3000/posts').then((res) =>
                     res.json()
                 )
                 // console.timeEnd('Fetch-data')
-                console.log({ allMessages })
                 const messages = allMessages[languageKey]
                 handleLoad(isDefaultLanguage, locale, messages)
             }
@@ -95,21 +56,26 @@ export default function I18nLoader({ children, languageKey }) {
         }
     }
 
-    const handleLoad = (isComplied, locale, _messages) => {
+    const handleLoad = (isComplied, locale, messages) => {
         let catalog = {}
         if (isComplied) {
-            catalog = _messages
+            catalog = messages
         } else {
             console.time('Remote-loader-compile-time')
-            catalog = remoteLoader({
-                messages: {
-                    ...messages.selectedLanguageDefaultJsonMessages,
-                    ..._messages,
-                },
-                fallbackMessages: messages.fallbackJsonMessages,
-            })
+            if (messages) {
+                const compliedMessages = remoteLoader({
+                    messages,
+                })
+                catalog = {
+                    ...selectedLanguageDefaultCompliedMessageRef.current,
+                    ...compliedMessages,
+                }
+            } else {
+                catalog = selectedLanguageDefaultCompliedMessageRef.current
+            }
             console.timeEnd('Remote-loader-compile-time')
         }
+        console.log({ catalog })
         console.time('Lingui-load')
         i18n.loadLocaleData(locale, { plurals: Plurals[locale] })
         i18n.load(locale, catalog)
@@ -126,7 +92,6 @@ export default function I18nLoader({ children, languageKey }) {
                 i18n,
                 languageKey,
                 handleLoad,
-                selectedLanguageDefaultJsonMessages: messages.selectedLanguageDefaultJsonMessages,
             }}
         >
             <I18nProvider i18n={i18n}>{children}</I18nProvider>

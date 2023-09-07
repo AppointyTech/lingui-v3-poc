@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react'
 import { remoteLoader } from '@lingui/remote-loader'
 import { t, Trans } from '@lingui/macro'
 import { useLingui } from '@lingui/react'
-import { omitBy } from 'lodash'
+import { omitBy, omit } from 'lodash'
 
 import { useI18n } from '../context/I18nLoader'
 
@@ -11,29 +11,37 @@ export function ReplaceLocales() {
     const [loading, setLoading] = useState(false)
     const [messages, setMessages] = useState()
     const [formData, setFormData] = useState()
-    const { handleLoad, selectedLanguageDefaultMessagesJson, languageKey } = useI18n()
+    const { handleLoad, languageKey } = useI18n()
     const { i18n } = useLingui()
     const isDefaultLanguage = !languageKey.includes('-')
 
     useEffect(() => {
         if (!isDefaultLanguage) {
+            const locale = languageKey.split('-')[0]
             setLoading(true)
-            fetch('http://localhost:3000/posts')
-                .then((res) => res.json())
-                .then((data) => {
+            ;(async () => {
+                try {
+                    const selectedLanguageDefaultJsonMessages = omit(
+                        {
+                            ...(await import(`../locales/${locale}/messages.json`)),
+                        },
+                        'default'
+                    )
+                    const data = await fetch('http://localhost:3000/posts').then((res) =>
+                        res.json()
+                    )
                     const messages = {
-                        ...selectedLanguageDefaultMessagesJson,
+                        ...selectedLanguageDefaultJsonMessages,
                         ...data[languageKey],
                     }
                     setMessages(messages)
                     setFormData(messages)
-                })
-                .catch((error) => {
-                    setMessages(selectedLanguageDefaultMessagesJson)
-                    setFormData(selectedLanguageDefaultMessagesJson)
+                } catch (error) {
                     console.error('Error:', error)
-                })
-                .finally(() => setLoading(false))
+                } finally {
+                    setLoading(false)
+                }
+            })()
         }
     }, [languageKey])
 
@@ -55,7 +63,7 @@ export function ReplaceLocales() {
                             ...omitBy(formData, (value) => !value),
                         },
                     }
-                    // remoteLoader({ messages: formData })
+                    remoteLoader({ messages: formData })
                     fetch('http://localhost:3000/posts', {
                         method: 'POST',
                         headers: {
@@ -107,8 +115,9 @@ export function ReplaceLocales() {
                                         style={{ display: 'flex', justifyContent: 'space-between' }}
                                         className="border border-gray-500 p-2 flex items-center"
                                     >
-                                        <span>{key}</span>
+                                        <label htmlFor={`form-${key}`}>{key}</label>
                                         <input
+                                            id={`form-${key}`}
                                             type="text"
                                             value={formData?.[key]}
                                             onChange={handleInputChange(key)}
