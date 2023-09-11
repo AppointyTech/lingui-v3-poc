@@ -20,6 +20,7 @@
         "start": "react-app-rewired start",
         "build": "react-app-rewired build",
         "test": "react-app-rewired test",
+        "server": "npx json-server --watch db.json --port 8000",
         "eject": "react-scripts eject",
         "extract": "lingui extract --clean --verbose",
         "compile": "lingui compile"
