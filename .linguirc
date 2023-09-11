@@ -1,13 +1,13 @@
 {
     "locales": [
-        "ar",
-        "en",
-        "es",
-        "fr"
+        "ar-AR",
+        "en-EN",
+        "es-ES",
+        "fr-FR"
     ],
-    "sourceLocale": "en",
+    "sourceLocale": "en-EN",
     "fallbackLocales": {
-        "default": "en"
+        "default": "en-EN"
     },
     "catalogs": [
         {

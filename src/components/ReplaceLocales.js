@@ -7,18 +7,21 @@ import { omitBy, omit, pickBy } from 'lodash'
 
 import { useI18n } from '../context/I18nLoader'
 
-export function ReplaceLocales() {
+export default function ReplaceLocales() {
+    const { handleLoad, languageKey } = useI18n()
+    const { i18n } = useLingui()
+
     const [loading, setLoading] = useState(false)
+    const [error, setError] = useState()
     const [messages, setMessages] = useState()
     const [formData, setFormData] = useState()
     const selectedLanguageDefaultMessagesRef = useRef({})
-    const { handleLoad, languageKey } = useI18n()
-    const { i18n } = useLingui()
-    const isDefaultLanguage = !languageKey.includes('-')
+
+    const isDefaultLanguage = !languageKey.includes('/')
 
     useEffect(() => {
         if (!isDefaultLanguage) {
-            const locale = languageKey.split('-')[0]
+            const locale = languageKey.split('/')[0]
             setLoading(true)
             ;(async () => {
                 try {
@@ -28,7 +31,7 @@ export function ReplaceLocales() {
                         },
                         'default'
                     )
-                    const data = await fetch('http://localhost:3000/posts').then((res) =>
+                    const data = await fetch('http://localhost:8000/posts').then((res) =>
                         res.json()
                     )
                     const messages = {
@@ -55,7 +58,7 @@ export function ReplaceLocales() {
 
     const handleAddCustomLanguage = () => {
         if (!isDefaultLanguage) {
-            fetch('http://localhost:3000/posts')
+            fetch('http://localhost:8000/posts')
                 .then((res) => res.json())
                 .then((data) => {
                     const messages = pickBy(
@@ -74,7 +77,7 @@ export function ReplaceLocales() {
                             compliedMessages,
                         },
                     }
-                    fetch('http://localhost:3000/posts', {
+                    fetch('http://localhost:8000/posts', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -84,9 +87,9 @@ export function ReplaceLocales() {
                         .then((response) => response.json())
                         .then((data) => {
                             console.log('POST Request Response:', data)
-                            const locale = languageKey.split('-')[0]
+                            const locale = languageKey.split('/')[0]
                             const compliedMessages = data[languageKey].compliedMessages
-                            handleLoad(isDefaultLanguage, locale, compliedMessages)
+                            handleLoad(locale, compliedMessages)
                         })
                         .catch((error) => {
                             console.error('Error:', error)
@@ -94,6 +97,7 @@ export function ReplaceLocales() {
                 })
                 .catch((error) => {
                     console.error('Error:', error)
+                    setError(Error(error).message)
                 })
         }
     }
@@ -110,6 +114,7 @@ export function ReplaceLocales() {
                 </p>
             ) : (
                 <>
+                    {<p className="text-center">{error}</p>}
                     <button
                         className="border border-slate-400 rounded-lg px-2 py-1 mx-auto"
                         onClick={handleAddCustomLanguage}

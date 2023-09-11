@@ -1,32 +1,24 @@
 {
-  "posts": {
-    "en-someId": {
-      "messages": {
-        "Appointy Data": "Appointy",
-        "{count, plural, zero {There're no messages} one {There's # message in your inbox} other {There're # messages in your inbox}}": "{count, plural, zero {There're no messages} one {There's # message in your inbox...} other {There're # messages in your inbox...}}"
-      },
-      "compliedMessages": {
-        "Appointy Data": "Appointy",
-        "{count, plural, zero {There're no messages} one {There's # message in your inbox} other {There're # messages in your inbox}}": [
-          [
-            "count",
-            "plural",
-            {
-              "zero": "There're no messages",
-              "one": [
-                "There's ",
-                "#",
-                " message in your inbox..."
-              ],
-              "other": [
-                "There're ",
-                "#",
-                " messages in your inbox..."
-              ]
+    "posts": {
+        "en-EN/someId": {
+            "messages": {
+                "Appointy Data": "Appointy",
+                "{count, plural, zero {There're no messages} one {There's # message in your inbox} other {There're # messages in your inbox}}": "{count, plural, zero {There're no messages...} one {There's # message in your inbox...} other {There're # messages in your inbox...}}"
+            },
+            "compliedMessages": {
+                "Appointy Data": "Appointy",
+                "{count, plural, zero {There're no messages} one {There's # message in your inbox} other {There're # messages in your inbox}}": [
+                    [
+                        "count",
+                        "plural",
+                        {
+                            "zero": "There're no messages...",
+                            "one": ["There's ", "#", " message in your inbox..."],
+                            "other": ["There're ", "#", " messages in your inbox..."]
+                        }
+                    ]
+                ]
             }
-          ]
-        ]
-      }
+        }
     }
-  }
 }

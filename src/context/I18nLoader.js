@@ -2,11 +2,10 @@ import { useEffect, useState, createContext, useContext, useRef } from 'react'
 
 import * as Plurals from 'make-plural/plurals'
 import { I18nProvider } from '@lingui/react'
-import { i18n, setupI18n } from '@lingui/core'
-import { remoteLoader } from '@lingui/remote-loader'
+import { i18n } from '@lingui/core'
 
 export const I18nContext = createContext({
-    i18n: setupI18n(),
+    i18n: undefined,
     handleLoad: undefined,
     languageKey: 'en',
 })
@@ -30,21 +29,21 @@ export default function I18nLoader({ children, languageKey }) {
     }, [languageKey])
 
     const dynamicActivate = async (languageKey) => {
-        const isDefaultLanguage = !languageKey.includes('-')
-        const locale = languageKey.includes('-') ? languageKey.split('-')[0] : languageKey
+        const isDefaultLanguage = !languageKey.includes('/')
+        const locale = languageKey.includes('/') ? languageKey.split('/')[0] : languageKey
         setLoading(true)
         try {
             selectedLanguageDefaultCompliedMessageRef.current = {
                 ...(await import(`../locales/${locale}/messages.js`)).messages,
             }
             if (isDefaultLanguage) {
-                handleLoad(isDefaultLanguage, languageKey)
+                handleLoad(languageKey)
             } else {
-                const allMessages = await fetch('http://localhost:3000/posts').then((res) =>
+                const allMessages = await fetch('http://localhost:8000/posts').then((res) =>
                     res.json()
                 )
                 const compliedMessages = allMessages[languageKey]?.compliedMessages
-                handleLoad(isDefaultLanguage, locale, compliedMessages)
+                handleLoad(locale, compliedMessages)
             }
         } catch (error) {
             console.error('Error:', error)
@@ -53,9 +52,9 @@ export default function I18nLoader({ children, languageKey }) {
         }
     }
 
-    const handleLoad = (hasCompliedMessages, locale, compliedMessages) => {
+    const handleLoad = (locale, compliedMessages) => {
         let catalog = {}
-        if (hasCompliedMessages === false && compliedMessages !== undefined) {
+        if (compliedMessages !== undefined) {
             catalog = {
                 ...selectedLanguageDefaultCompliedMessageRef.current,
                 ...compliedMessages,
@@ -65,12 +64,11 @@ export default function I18nLoader({ children, languageKey }) {
         }
         console.log({ catalog })
         console.time('Lingui-load')
-        i18n.loadLocaleData(locale, { plurals: Plurals[locale] })
+        i18n.loadLocaleData(locale, { plurals: Plurals[locale.split('-')[0]] })
         i18n.load(locale, catalog)
         i18n.activate(locale)
         console.timeEnd('Lingui-load')
     }
-
     if (loading) {
         return <div className="min-h-screen flex justify-center items-center">loading...</div>
     }
