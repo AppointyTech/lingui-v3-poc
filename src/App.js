@@ -13,7 +13,7 @@ const AppointyData = loadable(() => import('./components/AppointyData'))
 const ReplaceLocales = loadable(() => import('./components/ReplaceLocales'))
 
 function App() {
-    const [languageKey, setLanguageKey] = useState('en')
+    const [languageKey, setLanguageKey] = useState('en-EN')
     const changeLanguage = (e) => setLanguageKey(e.target.value)
 
     return (
